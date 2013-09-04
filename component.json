@@ -47,7 +47,7 @@
     "cover"          :  "0.2.x"
   },
   "dependencies": {
-    "andyburke/dustjs-linkedin":  "*"
+    "andyburke/dustjs":  "*"
   },
   "license": "MIT"
 }

@@ -33,9 +33,9 @@
       "email": "sclatter@linkedin.com"
     }
   ],
-  "main": "lib/dustjs-helpers.js",
+  "main": "lib/dust-helpers.js",
   "scripts": [
-    "lib/dustjs-helpers.js"
+    "lib/dust-helpers.js"
   ],
   "repository": {
     "type": "git",

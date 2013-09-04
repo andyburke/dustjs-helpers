@@ -44,8 +44,10 @@
   "keywords": ["templates", "views", "helpers"],
   "devDependencies": {
     "jasmine-node"   :  "1.0.x",
-    "cover"          :  "0.2.x",
-    "dustjs-linkedin":  "1.1.x"
+    "cover"          :  "0.2.x"
+  },
+  "dependencies": {
+    "andyburke/dustjs-linkedin":  "*"
   },
   "license": "MIT"
 }

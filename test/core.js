@@ -9,7 +9,7 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("base context", function() {
     var base = dust.makeBase({
-      sayHello: function() { return "Hello!" }
+      sayHello: function() { return "Hello!"; }
     });
     testRender(this, "{sayHello} {foo}", base.push({foo: "bar"}), "Hello! bar");
   });
@@ -78,16 +78,11 @@ exports.coreSetup = function(suite, auto) {
       end: function () {
         unit.pass();
       }
-    })
+    });
   });
 
   suite.test("tap (plain text string literal)", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { };
     dust.renderSource("plain text. {@tapper value=\"plain text\"/}", base_context, function(err, out) {
       try {
@@ -103,11 +98,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (string literal that includes a string-valued {context variable})", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { a:"Alpha" };
     dust.renderSource("a is {a}. {@tapper value=\"a is {a}\"/}", base_context, function(err, out) {
       try {
@@ -123,11 +113,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (reference to string-valued context variable)", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { a:"Alpha" };
     dust.renderSource("{a}. {@tapper value=a/}", base_context, function(err, out) {
       try {
@@ -143,11 +128,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (string literal that includes a string-valued {context function})", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { "b":function() { return "beta"; } };
     dust.renderSource("b is {b}. {@tapper value=\"b is {b}\"/}", base_context, function(err, out) {
       try {
@@ -163,11 +143,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (reference to a a string-valued {context function})", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { "b":function() { return "beta"; } };
     dust.renderSource("{b}. {@tapper value=b/}", base_context, function(err, out) {
       try {
@@ -183,11 +158,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (string literal that includes an object-valued {context variable})", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { "a":{"foo":"bar"} };
     dust.renderSource("a.foo is {a.foo}. {@tapper value=\"a.foo is {a.foo}\"/}", base_context, function(err, out) {
       try {
@@ -203,11 +173,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (reference to an object-valued {context variable})", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { "a":{"foo":"bar"} };
     dust.renderSource("{a.foo}. {@tapper value=a.foo/}", base_context, function(err, out) {
       try {
@@ -223,11 +188,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (string literal that calls a function within an object-valued {context variable})", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { "a": {"foo":function() { return "bar"; } } };
     dust.renderSource("a.foo is {a.foo}. {@tapper value=\"a.foo is {a.foo}\"/}", base_context, function(err, out) {
       try {
@@ -243,11 +203,6 @@ exports.coreSetup = function(suite, auto) {
 
   suite.test("tap (reference to a function within an object-valued {context variable})", function() {
     var unit = this;
-    dust.helpers.tapper = function(chunk, context, bodies, params) {
-      var result = dust.helpers.tap(params.value,chunk,context);
-      chunk.write(result);
-      return chunk;
-    };
     var base_context = { "a": {"foo":function() { return "bar"; } } };
     dust.renderSource("{a.foo} {@tapper value=a.foo/}", base_context, function(err, out) {
       try {
@@ -260,7 +215,7 @@ exports.coreSetup = function(suite, auto) {
       unit.pass();
     });
   });
-}
+};
 
 function testRender(unit, source, context, expected, error) {
   var name = unit.id;

@@ -1,4 +1,6 @@
-var helpersTests = [
+(function(dust) {
+
+  var helpersTests = [
   {
     name: "replace",
     tests: [
@@ -20,6 +22,13 @@ var helpersTests = [
         context:  { x: 2, y: 3 },
         expected: "",
         message: "should test if helper with no body and fail gracefully"
+      },
+      {
+        name:     "if helper with no condition",
+        source:   '{@if}Hello{/if}',
+        context:  { x: 2, y: 3 },
+        expected: "",
+        message: "should test if helper with no condition fails gracefully"
       },
       {
         name:     "if helper without else",
@@ -487,6 +496,13 @@ var helpersTests = [
         message: "eq helper with no body silently fails with console log"
       },
       {
+        name:     "eq helper with no params",
+        source:   "{@eq}Hello{/eq}",
+        context:  {},
+        expected: "",
+        message: "eq helper with no params does not execute"
+      },
+      {
         name:     "eq helper matching string case",
         source:   "{@eq key=\"foo\" value=\"foo\"}equal{/eq}",
         context:  {},
@@ -560,6 +576,13 @@ var helpersTests = [
         message: "ne helper with no body silently fails with console log"
       },
       {
+        name:     "ne helper with no params",
+        source:   "{@ne}Hello{/ne}",
+        context:  {},
+        expected: "",
+        message: "ne helper with no params does not execute"
+      },
+      {
         name:     "ne helper matching string case",
         source:   "{@ne key=\"foo\" value=\"foo\"}not equal{/ne}",
         context:  {},
@@ -619,6 +642,13 @@ var helpersTests = [
         context:  {},
         expected: "",
         message: "lt helper with no body silently fails with console log"
+      },
+      {
+        name:     "lt helper with no params",
+        source:   "{@lt}Hello{/lt}",
+        context:  {},
+        expected: "",
+        message: "lt helper with no params does not execute"
       },
       {
         name:     "lt helper defaults to type number",
@@ -687,6 +717,27 @@ var helpersTests = [
         context:  {},
         expected: "22 not greater than 3 with type string",
         message: "gt helper with type string not valid case"
+      },
+      {
+        name:     "gt helper with no params",
+        source:   "{@gt}Hello{/gt}",
+        context:  {},
+        expected: "",
+        message: "gt helper with no params does not execute"
+      },
+      {
+        name:     "lte helper with no params",
+        source:   "{@lte}Hello{/lte}",
+        context:  {},
+        expected: "",
+        message: "lte helper with no params does not execute"
+      },
+      {
+        name:     "gte helper with no params",
+        source:   "{@gte}Hello{/gte}",
+        context:  {},
+        expected: "",
+        message: "gte helper with no params does not execute"
       },
       {
         name:     "lte helper with no body",
@@ -1033,7 +1084,7 @@ var helpersTests = [
           context:  { myboolean: true },
           expected: "you have 0 new messages",
           message: "should test if size helper is working properly with boolean true"
-      }, 
+      },
       {
         name:     "size helper with object",
         source:   'you have {@size key=myValue/} new messages',
@@ -1246,17 +1297,24 @@ var helpersTests = [
           message: "contextDump full test"
       },
       {
-          name:     "contextDump function dump test",
-          source:   "{#aa param=\"{p}\"}{@contextDump key=\"full\"/}{/aa}",
-          context:  { "aa": ["a"], "p" : 42},
-          expected: "{\n  \"tail\": {\n    \"tail\": {\n      \"isObject\": true,\n      \"head\": {\n        \"aa\": [\n          \"a\"\n        ],\n        \"p\": 42\n      }\n    },\n    \"isObject\": true,\n    \"head\": {\n      \"param\": \"function body_2(chk, ctx) {return chk.reference(ctx.get([\\\"p\\\"], false), ctx, \\\"h\\\");}\",\n      \"$len\": 1,\n      \"$idx\": 0\n    }\n  },\n  \"isObject\": false,\n  \"head\": \"a\",\n  \"index\": 0,\n  \"of\": 1\n}",
-          message: "contextDump function dump test"
+          name:     "contextDump encoding test",
+          source:   "{@contextDump/}",
+          context:  { "A": "<html>", "B": "</html>"},
+          expected: "{\n  \"A\": \"\\u003chtml>\",\n  \"B\": \"\\u003c/html>\"\n}",
+          message: "contextDump simple test"
       }
     ]
   },
   {
     name: "idx",
     tests: [
+      {
+        name:     "idx helper with no body",
+        source:   '{#n}{@idx/}{.} {/n}',
+        context:  { n: ["Mick", "Tom", "Bob"] },
+        expected: "Mick Tom Bob ",
+        message: "idx helper with no body should not render"
+      },
       {
         name:     "idx helper within partial included in a array",
         source:   '{#n}{@idx}{.}>>{/idx}{>hello_there name=. count="30"/}{/n}',
@@ -1269,6 +1327,13 @@ var helpersTests = [
   {
     name: "sep",
     tests: [
+      {
+        name:     "sep helper with no body",
+        source:   '{#n}{.} {@sep/}{/n}',
+        context:  { n: ["Mick", "Tom", "Bob"] },
+        expected: "Mick Tom Bob ",
+        message: "sep helper with no body should not render"
+      },
       {
         name:     "sep helper within partial included in a array",
         source:   '{#n}{>hello_there name=. count="30"/}{@sep} {/sep}{/n}',
@@ -1294,10 +1359,11 @@ var helpersTests = [
       }
     ]
   }
-];
+  ];
 
-if (typeof module !== "undefined" && typeof require !== "undefined") {
-  module.exports = helpersTests; // We're on node.js
-} else {
-  this['helpersTests'] = helpersTests; // We're on the browser
-}
+  if (typeof exports !== "undefined") {
+    module.exports = helpersTests; // We're on node.js
+  } else {
+    this['helpersTests'] = helpersTests; // We're on the browser
+  }
+})(typeof exports !== 'undefined' ? require('dustjs-linkedin') : dust);

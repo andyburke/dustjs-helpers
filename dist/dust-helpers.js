@@ -1,19 +1,10 @@
-/*! dustjs-helpers - v1.2.0
+/*! dustjs-helpers - v1.4.0
 * https://github.com/linkedin/dustjs-helpers
 * Copyright (c) 2014 Aleksander Williams; Released under the MIT License */
 (function(dust){
 
-// Note: all error conditions are logged to console and failed silently
-
-/* make a safe version of console if it is not available
- * currently supporting:
- *   _console.log
- * */
-var _console = (typeof console !== 'undefined')? console: {
-  log: function(){
-     /* a noop*/
-   }
-};
+//using the built in logging method of dust when accessible
+var _log = dust.log ? function(mssg) { dust.log(mssg, "INFO"); } : function() {};
 
 function isSelect(context) {
   var value = context.current();
@@ -57,7 +48,7 @@ function filter(chunk, context, bodies, params, filterOp) {
     }
   }
   else {
-    _console.log ("No key specified for filter in:" + filterOpType + " helper ");
+    _log("No key specified for filter in:" + filterOpType + " helper ");
     return chunk;
   }
   expectedValue = dust.helpers.tap(params.value, chunk, context);
@@ -71,7 +62,7 @@ function filter(chunk, context, bodies, params, filterOp) {
      return chunk.render(body, context);
     }
     else {
-      _console.log( "Missing body block in the " + filterOpType + " helper ");
+      _log("No key specified for filter in:" + filterOpType + " helper ");
       return chunk;
     }
    }
@@ -106,16 +97,16 @@ var helpers = {
    Reference resolution rules:
    if value exists in JSON:
     "" or '' will evaluate to false, boolean false, null, or undefined will evaluate to false,
-    numeric 0 evaluates to true, so does, string "0", string "null", string "undefined" and string "false". 
+    numeric 0 evaluates to true, so does, string "0", string "null", string "undefined" and string "false".
     Also note that empty array -> [] is evaluated to false and empty object -> {} and non-empty object are evaluated to true
-    The type of the return value is string ( since we concatenate to support interpolated references 
+    The type of the return value is string ( since we concatenate to support interpolated references
 
    if value does not exist in JSON and the input is a single reference: {x}
-     dust render emits empty string, and we then return false   
-     
+     dust render emits empty string, and we then return false
+
    if values does not exist in JSON and the input is interpolated references : {x} < {y}
-     dust render emits <  and we return the partial output 
-     
+     dust render emits <  and we return the partial output
+
   */
   "tap": function(input, chunk, context) {
     // return given input if there is no dust reference to resolve
@@ -191,10 +182,13 @@ var helpers = {
       dump = JSON.stringify(context.stack.head, jsonFilter, 2);
     }
     if (to === 'console') {
-      _console.log(dump);
+      _log(dump);
       return chunk;
     }
     else {
+      // encode opening brackets when outputting to html
+      dump = dump.replace(/</g, '\\u003c');
+
       return chunk.write(dump);
     }
   },
@@ -226,7 +220,7 @@ var helpers = {
         return chunk.render( bodies.block, context );
        }
        else {
-         _console.log( "Missing body block in the if helper!" );
+         _log("Missing body block in the if helper!");
          return chunk;
        }
       }
@@ -236,7 +230,7 @@ var helpers = {
     }
     // no condition
     else {
-      _console.log( "No condition given in the if helper!" );
+      _log("No condition given in the if helper!");
     }
     return chunk;
   },
@@ -257,14 +251,17 @@ var helpers = {
           operand = params.operand,
           round = params.round,
           mathOut = null,
-          operError = function(){_console.log("operand is required for this math method"); return null;};
+          operError = function(){
+              _log("operand is required for this math method");
+              return null;
+          };
       key  = dust.helpers.tap(key, chunk, context);
       operand = dust.helpers.tap(operand, chunk, context);
       //  TODO: handle  and tests for negatives and floats in all math operations
       switch(method) {
         case "mod":
           if(operand === 0 || operand === -0) {
-            _console.log("operand for divide operation is 0/-0: expect Nan!");
+            _log("operand for divide operation is 0/-0: expect Nan!");
           }
           mathOut = parseFloat(key) %  parseFloat(operand);
           break;
@@ -279,7 +276,7 @@ var helpers = {
           break;
         case "divide":
          if(operand === 0 || operand === -0) {
-           _console.log("operand for divide operation is 0/-0: expect Nan/Infinity!");
+           _log("operand for divide operation is 0/-0: expect Nan/Infinity!");
          }
           mathOut = parseFloat(key) / parseFloat(operand);
           break;
@@ -296,7 +293,7 @@ var helpers = {
           mathOut = Math.abs(parseFloat(key));
           break;
         default:
-          _console.log( "method passed is not supported" );
+          _log("method passed is not supported");
      }
 
       if (mathOut !== null){
@@ -317,7 +314,7 @@ var helpers = {
     }
     // no key parameter and no method
     else {
-      _console.log( "Key is a required parameter for math helper along with method/operand!" );
+      _log("Key is a required parameter for math helper along with method/operand!");
     }
     return chunk;
   },
@@ -340,13 +337,13 @@ var helpers = {
        return chunk.render(bodies.block, context.push({ isSelect: true, isResolved: false, selectKey: key }));
       }
       else {
-       _console.log( "Missing body block in the select helper ");
+       _log("Missing body block in the select helper ");
        return chunk;
       }
     }
     // no key
     else {
-      _console.log( "No key given in the select helper!" );
+      _log("No key given in the select helper!");
     }
     return chunk;
   },
@@ -365,8 +362,9 @@ var helpers = {
   "eq": function(chunk, context, bodies, params) {
     if(params) {
       params.filterOpType = "eq";
+      return filter(chunk, context, bodies, params, function(expected, actual) { return actual === expected; });
     }
-    return filter(chunk, context, bodies, params, function(expected, actual) { return actual === expected; });
+    return chunk;
   },
 
   /**
@@ -385,7 +383,7 @@ var helpers = {
       params.filterOpType = "ne";
       return filter(chunk, context, bodies, params, function(expected, actual) { return actual !== expected; });
     }
-   return chunk;
+    return chunk;
   },
 
   /**
@@ -400,10 +398,11 @@ var helpers = {
    Note : use type="number" when comparing numeric
    **/
   "lt": function(chunk, context, bodies, params) {
-     if(params) {
-       params.filterOpType = "lt";
-       return filter(chunk, context, bodies, params, function(expected, actual) { return actual < expected; });
-     }
+    if(params) {
+      params.filterOpType = "lt";
+      return filter(chunk, context, bodies, params, function(expected, actual) { return actual < expected; });
+    }
+    return chunk;
   },
 
   /**
@@ -418,10 +417,10 @@ var helpers = {
    Note : use type="number" when comparing numeric
   **/
   "lte": function(chunk, context, bodies, params) {
-     if(params) {
-       params.filterOpType = "lte";
-       return filter(chunk, context, bodies, params, function(expected, actual) { return actual <= expected; });
-     }
+    if(params) {
+      params.filterOpType = "lte";
+      return filter(chunk, context, bodies, params, function(expected, actual) { return actual <= expected; });
+    }
     return chunk;
   },
 
@@ -462,7 +461,7 @@ var helpers = {
       params.filterOpType = "gte";
       return filter(chunk, context, bodies, params, function(expected, actual) { return actual >= expected; });
      }
-    return chunk; 
+    return chunk;
   },
 
   // to be used in conjunction with the select helper
@@ -508,10 +507,16 @@ var helpers = {
     }
     return chunk.write(value);
   }
-  
-  
+
+
 };
 
-dust.helpers = helpers;
+  for (var key in helpers) {
+    dust.helpers[key] = helpers[key];
+  }
 
-})(typeof exports !== 'undefined' ? module.exports = require('dustjs-linkedin') : dust);
+  if(typeof exports !== 'undefined') {
+    module.exports = dust;
+  }
+
+})(typeof exports !== 'undefined' ? require('dustjs-linkedin') : dust);
